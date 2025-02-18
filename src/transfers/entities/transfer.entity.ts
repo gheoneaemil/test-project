@@ -1,16 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Index } from 'typeorm';
 
 @Entity()
 export class Transfer {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  blockNumber: number;
-
+  @Index()
   @Column()
   from: string;
 
+  @Index()
   @Column()
   to: string;
 
@@ -20,8 +19,7 @@ export class Transfer {
   @Column()
   createdAt: number;
 
-    constructor(blockNumber: number, from: string, to: string, amount: string, createdAt: number) {
-        this.blockNumber = blockNumber;
+    constructor(from: string, to: string, amount: string, createdAt: number) {
         this.from = from;
         this.to = to;
         this.amount = amount;

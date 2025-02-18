@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { providers, Contract } from "ethers";
-import { Transfer } from 'src/modules/entities/Transfers.entity';
+import { Transfer } from 'src/transfers/entities/transfer.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -36,7 +36,7 @@ export class WatcherService {
         console.info('Listening for USDC transfers on Avalanche...');
         this.contract.on("Transfer", async (from, to, value, event) => {
           const block = await this.provider.getBlock(event.blockNumber);
-          const transfer = new Transfer(event.blockNumber, from, to, value._hex, block.timestamp);
+          const transfer = new Transfer(from, to, value._hex, block.timestamp);
           await this.usdcTransactionRepository.save(transfer);
         });
     }

@@ -22,7 +22,7 @@ jobs:
         node-version: '22'
 
     - name: Install dependencies
-      run: npm install
+      run: pnpm install
 
     - name: Run unit tests
       run: npm test

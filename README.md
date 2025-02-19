@@ -24,7 +24,6 @@
 
 Architecture design document can be found [here](docs/docs.md)!
 
-Execution of e2e tests requires atleast 100 unique wallet transfers in the database.
 ## Installation
 
 ```bash
@@ -45,6 +44,8 @@ $ npm run start:prod
 ```
 
 ## Test
+
+Execution of e2e tests requires atleast 100 unique wallet transfers in the database.
 
 ```bash
 # unit tests

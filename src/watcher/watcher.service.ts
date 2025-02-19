@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { providers, Contract } from "ethers";
+import { providers, Contract, BigNumber } from "ethers";
 import { Transfer } from '../transfers/entities/transfer.entity';
 import { Repository } from 'typeorm';
 
@@ -35,7 +35,7 @@ export class WatcherService {
     async onModuleInit() {
       this.contract.on("Transfer", async (from, to, value, event) => {
         const block = await this.provider.getBlock(event.blockNumber);
-        const transfer = new Transfer(from, to, value._hex, block.timestamp);
+        const transfer = new Transfer(from, to, BigNumber.from(value._hex).toString(), new Date(block.timestamp * 1000));
         await this.usdcTransactionRepository.save(transfer);
       });
     }

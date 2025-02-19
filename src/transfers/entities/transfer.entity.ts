@@ -13,13 +13,13 @@ export class Transfer {
   @Column()
   to: string;
 
-  @Column()
+  @Column({ type: "numeric", precision: 78, scale: 0 })
   amount: string;
 
   @Column()
-  createdAt: number;
+  createdAt: Date;
 
-    constructor(from: string, to: string, amount: string, createdAt: number) {
+    constructor(from: string, to: string, amount: string, createdAt: Date) {
         this.from = from;
         this.to = to;
         this.amount = amount;

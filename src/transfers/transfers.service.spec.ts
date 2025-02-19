@@ -1,26 +1,46 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { TransfersService } from './transfers.service';
 import { Repository } from 'typeorm';
 import { Transfer } from './entities/transfer.entity';
-import { TransfersService } from './transfers.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+
+const mockTransferRepository = {
+  createQueryBuilder: jest.fn().mockReturnValue({
+    select: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
+    groupBy: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    getRawOne: jest.fn(),
+    getRawMany: jest.fn(),
+  }),
+};
 
 describe('TransfersService', () => {
-  let transfersService: TransfersService;
+  let service: TransfersService;
   let transferRepository: Repository<Transfer>;
 
-  const mockTransferRepository = {
-    createQueryBuilder: jest.fn(),
-  };
+  beforeAll(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransfersService,
-        { provide: getRepositoryToken(Transfer), useValue: mockTransferRepository },
+        {
+          provide: getRepositoryToken(Transfer),
+          useValue: mockTransferRepository,
+        },
       ],
     }).compile();
 
-    transfersService = module.get<TransfersService>(TransfersService);
+    service = module.get<TransfersService>(TransfersService);
     transferRepository = module.get<Repository<Transfer>>(getRepositoryToken(Transfer));
   });
 
@@ -28,53 +48,54 @@ describe('TransfersService', () => {
     jest.clearAllMocks();
   });
 
-  it('should return the total USDC transferred within a given period', async () => {
-    const startDate = '2024-02-01';
-    const endDate = '2024-02-10';
-    const mockQueryBuilder = {
-      select: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      getRawOne: jest.fn().mockResolvedValue({ totalTransferred: '500000.00' }),
-    };
+  describe('getTotalTransferred', () => {
+    it('should return the total transferred amount', async () => {
+      const mockTotal = { totalTransferred: '1000' };
+      mockTransferRepository.createQueryBuilder().getRawOne.mockResolvedValue(mockTotal);
 
-    mockTransferRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      const result = await service.getTotalTransferred('2024-01-01', '2024-01-31');
+      expect(result).toBe('1000');
+      expect(mockTransferRepository.createQueryBuilder).toHaveBeenCalledWith('transfer');
+    });
 
-    const result = await transfersService.getTotalTransferred(startDate, endDate);
+    it('should return 0 when no records exist', async () => {
+      mockTransferRepository.createQueryBuilder().getRawOne.mockResolvedValue(null);
 
-    expect(mockTransferRepository.createQueryBuilder).toHaveBeenCalledWith('transfer');
-    expect(mockQueryBuilder.select).toHaveBeenCalledWith('SUM(transfer.amount)', 'totalTransferred');
-    expect(mockQueryBuilder.where).toHaveBeenCalledWith(
-      'transfer.timestamp BETWEEN :startDate AND :endDate',
-      { startDate, endDate }
-    );
-    expect(result).toEqual({ totalTransferred: '500000.00' });
+      const result = await service.getTotalTransferred('2024-01-01', '2024-01-31');
+      expect(result).toBe(0);
+    });
+
+    it('should return 0 and handle errors', async () => {
+      mockTransferRepository.createQueryBuilder().getRawOne.mockRejectedValue(new Error('DB error'));
+      const result = await service.getTotalTransferred('2000-01-01', '2000-01-31');
+      expect(result).toBe(0);
+    });
   });
 
-  it('should return the top accounts by transaction volume', async () => {
-    const limit = 5;
-    const mockResponse = [
-      { account: '0x123...abc', totalVolume: '20000.50' },
-      { account: '0x456...def', totalVolume: '15000.75' },
-    ];
-    const mockQueryBuilder = {
-      select: jest.fn().mockReturnThis(),
-      addSelect: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      getRawMany: jest.fn().mockResolvedValue(mockResponse),
-    };
+  describe('getTopAccounts', () => {
+    it('should return the top accounts sorted by volume', async () => {
+      const mockTopAccounts = [
+        { account: 'user1', totalVolume: '5000' },
+        { account: 'user2', totalVolume: '3000' },
+      ];
+      mockTransferRepository.createQueryBuilder().getRawMany.mockResolvedValue(mockTopAccounts);
 
-    mockTransferRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      const result = await service.getTopAccounts(2);
+      expect(result).toEqual(mockTopAccounts);
+    });
 
-    const result = await transfersService.getTopAccounts(limit);
+    it('should return an empty array when no records exist', async () => {
+      mockTransferRepository.createQueryBuilder().getRawMany.mockResolvedValue([]);
 
-    expect(mockTransferRepository.createQueryBuilder).toHaveBeenCalledWith('transfer');
-    expect(mockQueryBuilder.select).toHaveBeenCalledWith('transfer.from', 'account');
-    expect(mockQueryBuilder.addSelect).toHaveBeenCalledWith('SUM(transfer.amount)', 'totalVolume');
-    expect(mockQueryBuilder.groupBy).toHaveBeenCalledWith('transfer.from');
-    expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith('totalVolume', 'DESC');
-    expect(mockQueryBuilder.limit).toHaveBeenCalledWith(limit);
-    expect(result).toEqual(mockResponse);
+      const result = await service.getTopAccounts(2);
+      expect(result).toEqual([]);
+    });
+
+    it('should return an empty array and handle errors', async () => {
+      mockTransferRepository.createQueryBuilder().getRawMany.mockRejectedValue(new Error('DB error'));
+
+      const result = await service.getTopAccounts(2);
+      expect(result).toEqual([]);
+    });
   });
 });

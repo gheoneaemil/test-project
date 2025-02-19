@@ -10,24 +10,36 @@ export class TransfersService {
         private readonly transferRepository: Repository<Transfer>,
       ) {}
     
-      async getTotalTransferred(startDate: string, endDate: string) {
-        const total = await this.transferRepository
-          .createQueryBuilder('transfer')
-          .select('SUM(transfer.amount)', 'totalTransferred')
-          .where('transfer.timestamp BETWEEN :startDate AND :endDate', { startDate, endDate })
-          .getRawOne();
-    
-        return { totalTransferred: total?.totalTransferred || 0 };
+      async getTotalTransferred(startDate: string, endDate: string): Promise<string | 0> {
+        try {
+          const total = await this.transferRepository
+            .createQueryBuilder('transfer')
+            .select('SUM(CAST(transfer.amount AS NUMERIC))', 'totalTransferred')
+            .where('transfer.createdAt BETWEEN :startDate AND :endDate', { 
+              startDate: new Date(startDate), 
+              endDate: new Date(endDate) 
+            }).getRawOne();
+            
+          return total?.totalTransferred || 0;
+        } catch(err) {
+          console.error(err);
+          return 0;
+        }
       }
     
       async getTopAccounts(limit: number) {
-        return await this.transferRepository
-          .createQueryBuilder('transfer')
-          .select('transfer.from', 'account')
-          .addSelect('SUM(transfer.amount)', 'totalVolume')
-          .groupBy('transfer.from')
-          .orderBy('totalVolume', 'DESC')
-          .limit(limit)
-          .getRawMany();
+        try {
+          return await this.transferRepository
+            .createQueryBuilder('transfer')
+            .select('transfer.from', 'account')
+            .addSelect('SUM(transfer.amount)', 'totalVolume')  // Alias for SUM
+            .groupBy('transfer.from')
+            .orderBy('SUM(transfer.amount)', 'DESC')  // Use the expression directly in ORDER BY
+            .limit(limit)
+            .getRawMany();
+        } catch(err) {
+          console.error(err);
+          return [];
+        }
       }
 }

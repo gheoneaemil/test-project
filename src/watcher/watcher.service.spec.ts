@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WatcherService } from './watcher.service';
 import { Transfer } from '../transfers/entities/transfer.entity';
+import { BigNumber } from 'ethers';
 
 jest.mock('ethers', () => {
   const actual = jest.requireActual('ethers');
@@ -59,12 +60,13 @@ describe('WatcherService', () => {
   it('should save a transfer event to the repository', async () => {
     const from = '0x123';
     const to = '0x456';
-    const value = { _hex: '0x10' };
+    const amount = BigNumber.from("10");
     const event = { blockNumber: 100 };
+    const createdAt = new Date("2023-11-14T22:13:20.000Z");
 
     const mockOn: any = jest.fn((eventName: string, callback: Function) => {
       if (eventName === 'Transfer') {
-        callback(from, to, value, event); // Simulating event triggering
+        callback(from, to, amount, event); // Simulating event triggering
       }
     });
 
@@ -75,12 +77,7 @@ describe('WatcherService', () => {
     await watcherService.onModuleInit();
 
     expect(mockTransferRepository.save).toHaveBeenCalledWith(
-      {
-        amount: '0x10',
-        from,
-        createdAt: 1700000000,
-        to,
-      }
+      { amount: "10", from, createdAt, to }
     );
   });
 });

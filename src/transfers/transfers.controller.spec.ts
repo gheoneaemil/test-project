@@ -1,55 +1,50 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransfersController } from './transfers.controller';
 import { TransfersService } from './transfers.service';
+import { TotalTransferredDto } from './dto/total-transferred.dto';
+import { TopAccountsDto } from './dto/top-accounts.dto';
 
 describe('TransfersController', () => {
-  let transfersController: TransfersController;
-  let transfersService: TransfersService;
+    let controller: TransfersController;
+    let service: TransfersService;
 
-  const mockTransfersService = {
-    getTotalTransferred: jest.fn(),
-    getTopAccounts: jest.fn(),
-  };
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            controllers: [TransfersController],
+            providers: [
+                {
+                    provide: TransfersService,
+                    useValue: {
+                        getTotalTransferred: jest.fn(),
+                        getTopAccounts: jest.fn(),
+                    },
+                },
+            ],
+        }).compile();
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [TransfersController],
-      providers: [{ provide: TransfersService, useValue: mockTransfersService }],
-    }).compile();
+        controller = module.get<TransfersController>(TransfersController);
+        service = module.get<TransfersService>(TransfersService);
+    });
 
-    transfersController = module.get<TransfersController>(TransfersController);
-    transfersService = module.get<TransfersService>(TransfersService);
-  });
+    describe('getTotalTransferred', () => {
+        it('should return total transferred amount', async () => {
+            const dto: TotalTransferredDto = { startDate: '2024-01-01', endDate: '2024-01-31' };
+            const result = '10000';
+            jest.spyOn(service, 'getTotalTransferred').mockResolvedValue(result);
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+            expect(await controller.getTotalTransferred(dto)).toBe(result);
+            expect(service.getTotalTransferred).toHaveBeenCalledWith(dto.startDate, dto.endDate);
+        });
+    });
 
-  it('should return total USDC transferred in the given period', async () => {
-    const startDate = '2024-02-01';
-    const endDate = '2024-02-10';
-    const mockResponse = { totalTransferred: '500000.00' };
+    describe('getTopAccounts', () => {
+        it('should return top accounts by transaction volume', async () => {
+            const dto: TopAccountsDto = { limit: 5 };
+            const result = [{ account: '0x123', volume: 5000 }];
+            jest.spyOn(service, 'getTopAccounts').mockResolvedValue(result);
 
-    mockTransfersService.getTotalTransferred.mockResolvedValue(mockResponse);
-
-    const result = await transfersController.getTotalTransferred({ startDate, endDate });
-
-    expect(mockTransfersService.getTotalTransferred).toHaveBeenCalledWith(startDate, endDate);
-    expect(result).toEqual(mockResponse);
-  });
-
-  it('should return top accounts by transaction volume', async () => {
-    const limit = 5;
-    const mockResponse = [
-      { account: '0x123...abc', totalVolume: '20000.50' },
-      { account: '0x456...def', totalVolume: '15000.75' },
-    ];
-
-    mockTransfersService.getTopAccounts.mockResolvedValue(mockResponse);
-
-    const result = await transfersController.getTopAccounts({ limit });
-
-    expect(mockTransfersService.getTopAccounts).toHaveBeenCalledWith(limit);
-    expect(result).toEqual(mockResponse);
-  });
+            expect(await controller.getTopAccounts(dto)).toBe(result);
+            expect(service.getTopAccounts).toHaveBeenCalledWith(dto.limit);
+        });
+    });
 });

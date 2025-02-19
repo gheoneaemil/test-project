@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WatcherService } from './watcher/watcher.service';
 import { Transfer } from './transfers/entities/transfer.entity';
@@ -22,7 +20,7 @@ require('dotenv').config();
     }),
     TypeOrmModule.forFeature([Transfer])
   ],
-  controllers: [AppController, TransfersController],
-  providers: [AppService, WatcherService, TransfersService],
+  controllers: [TransfersController],
+  providers: [WatcherService, TransfersService],
 })
 export class AppModule {}

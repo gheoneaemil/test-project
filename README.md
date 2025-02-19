@@ -57,7 +57,7 @@ $ npm run test:cov
 
 ## Stay in touch
 
-- Author - [Gheonea Emilian](https://www.linkedin.com/in/gheonea-emilian/)
+- Author - [Gheonea "DIIMIIM" Emilian](https://www.linkedin.com/in/gheonea-emilian/)
 
 ## License
 

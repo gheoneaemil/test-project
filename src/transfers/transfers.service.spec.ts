@@ -41,7 +41,9 @@ describe('TransfersService', () => {
     }).compile();
 
     service = module.get<TransfersService>(TransfersService);
-    transferRepository = module.get<Repository<Transfer>>(getRepositoryToken(Transfer));
+    transferRepository = module.get<Repository<Transfer>>(
+      getRepositoryToken(Transfer),
+    );
   });
 
   afterEach(() => {
@@ -51,23 +53,61 @@ describe('TransfersService', () => {
   describe('getTotalTransferred', () => {
     it('should return the total transferred amount', async () => {
       const mockTotal = { totalTransferred: '1000' };
-      mockTransferRepository.createQueryBuilder().getRawOne.mockResolvedValue(mockTotal);
+      mockTransferRepository
+        .createQueryBuilder()
+        .getRawOne.mockResolvedValue(mockTotal);
 
-      const result = await service.getTotalTransferred('2024-01-01', '2024-01-31');
+      const result = await service.getTotalTransferred(
+        '2024-01-01',
+        '2024-01-31',
+      );
       expect(result).toBe('1000');
-      expect(mockTransferRepository.createQueryBuilder).toHaveBeenCalledWith('transfer');
+      expect(mockTransferRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'transfer',
+      );
+    });
+
+    it('should return the total maximum transferred amount', async () => {
+      const mockTotal = {
+        totalTransferred:
+          '999999999999999999999999999999999999999999999999999999999999999999999999999999',
+      };
+      mockTransferRepository
+        .createQueryBuilder()
+        .getRawOne.mockResolvedValue(mockTotal);
+
+      const result = await service.getTotalTransferred(
+        '2024-01-01',
+        '2024-01-31',
+      );
+      expect(result).toBe(
+        '999999999999999999999999999999999999999999999999999999999999999999999999999999',
+      );
+      expect(mockTransferRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'transfer',
+      );
     });
 
     it('should return 0 when no records exist', async () => {
-      mockTransferRepository.createQueryBuilder().getRawOne.mockResolvedValue(null);
+      mockTransferRepository
+        .createQueryBuilder()
+        .getRawOne.mockResolvedValue(null);
 
-      const result = await service.getTotalTransferred('2024-01-01', '2024-01-31');
+      const result = await service.getTotalTransferred(
+        '2024-01-01',
+        '2024-01-31',
+      );
       expect(result).toBe(0);
     });
 
     it('should return 0 and handle errors', async () => {
-      mockTransferRepository.createQueryBuilder().getRawOne.mockRejectedValue(new Error('DB error'));
-      const result = await service.getTotalTransferred('2000-01-01', '2000-01-31');
+      mockTransferRepository
+        .createQueryBuilder()
+        .getRawOne.mockRejectedValue(new Error('DB error'));
+      const result = await service.getTotalTransferred(
+        '2000-01-01',
+        '2000-01-31',
+      );
       expect(result).toBe(0);
     });
   });
@@ -78,21 +118,27 @@ describe('TransfersService', () => {
         { account: 'user1', totalVolume: '5000' },
         { account: 'user2', totalVolume: '3000' },
       ];
-      mockTransferRepository.createQueryBuilder().getRawMany.mockResolvedValue(mockTopAccounts);
+      mockTransferRepository
+        .createQueryBuilder()
+        .getRawMany.mockResolvedValue(mockTopAccounts);
 
       const result = await service.getTopAccounts(2);
       expect(result).toEqual(mockTopAccounts);
     });
 
     it('should return an empty array when no records exist', async () => {
-      mockTransferRepository.createQueryBuilder().getRawMany.mockResolvedValue([]);
+      mockTransferRepository
+        .createQueryBuilder()
+        .getRawMany.mockResolvedValue([]);
 
       const result = await service.getTopAccounts(2);
       expect(result).toEqual([]);
     });
 
     it('should return an empty array and handle errors', async () => {
-      mockTransferRepository.createQueryBuilder().getRawMany.mockRejectedValue(new Error('DB error'));
+      mockTransferRepository
+        .createQueryBuilder()
+        .getRawMany.mockRejectedValue(new Error('DB error'));
 
       const result = await service.getTopAccounts(2);
       expect(result).toEqual([]);

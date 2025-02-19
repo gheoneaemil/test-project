@@ -7,11 +7,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-  .setTitle('Avalanche C-Chain USDC API')
-  .setDescription('API documentation for USDC transaction queries on Avalanche C-Chain')
-  .setVersion('1.0')
-  .addTag('USDC Transfers')
-  .build();
+    .setTitle('Avalanche C-Chain USDC API')
+    .setDescription(
+      'API documentation for USDC transaction queries on Avalanche C-Chain',
+    )
+    .setVersion('1.0')
+    .addTag('USDC Transfers')
+    .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

@@ -32,12 +32,17 @@ describe('WatcherService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WatcherService,
-        { provide: getRepositoryToken(Transfer), useValue: mockTransferRepository },
+        {
+          provide: getRepositoryToken(Transfer),
+          useValue: mockTransferRepository,
+        },
       ],
     }).compile();
 
     watcherService = module.get<WatcherService>(WatcherService);
-    transferRepository = module.get<Repository<Transfer>>(getRepositoryToken(Transfer));
+    transferRepository = module.get<Repository<Transfer>>(
+      getRepositoryToken(Transfer),
+    );
   });
 
   afterEach(() => {
@@ -60,9 +65,9 @@ describe('WatcherService', () => {
   it('should save a transfer event to the repository', async () => {
     const from = '0x123';
     const to = '0x456';
-    const amount = BigNumber.from("10");
+    const amount = BigNumber.from('10');
     const event = { blockNumber: 100 };
-    const createdAt = new Date("2023-11-14T22:13:20.000Z");
+    const createdAt = new Date('2023-11-14T22:13:20.000Z');
 
     const mockOn: any = jest.fn((eventName: string, callback: Function) => {
       if (eventName === 'Transfer') {
@@ -76,8 +81,41 @@ describe('WatcherService', () => {
     // Simulate the contract's `on` method invocation
     await watcherService.onModuleInit();
 
-    expect(mockTransferRepository.save).toHaveBeenCalledWith(
-      { amount: "10", from, createdAt, to }
+    expect(mockTransferRepository.save).toHaveBeenCalledWith({
+      amount: '10',
+      from,
+      createdAt,
+      to,
+    });
+  });
+
+  it('should save a transfer event to the repository with the maximum amount', async () => {
+    const from = '0x123';
+    const to = '0x456';
+    const amount = BigNumber.from(
+      '999999999999999999999999999999999999999999999999999999999999999999999999999999',
     );
+    const event = { blockNumber: 100 };
+    const createdAt = new Date('2023-11-14T22:13:20.000Z');
+
+    const mockOn: any = jest.fn((eventName: string, callback: Function) => {
+      if (eventName === 'Transfer') {
+        callback(from, to, amount, event); // Simulating event triggering
+      }
+    });
+
+    // Replace the `on` method with our mock
+    watcherService['contract'].on = mockOn;
+
+    // Simulate the contract's `on` method invocation
+    await watcherService.onModuleInit();
+
+    expect(mockTransferRepository.save).toHaveBeenCalledWith({
+      amount:
+        '999999999999999999999999999999999999999999999999999999999999999999999999999999',
+      from,
+      createdAt,
+      to,
+    });
   });
 });

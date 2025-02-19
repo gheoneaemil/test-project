@@ -18,7 +18,7 @@ require('dotenv').config();
       entities: [__dirname + '/**/*.entity{.ts,.js}'], // Automatically load entity files
       synchronize: true, // Set to false in production to avoid auto schema sync
     }),
-    TypeOrmModule.forFeature([Transfer])
+    TypeOrmModule.forFeature([Transfer]),
   ],
   controllers: [TransfersController],
   providers: [WatcherService, TransfersService],

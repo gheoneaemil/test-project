@@ -18,7 +18,7 @@ The system consists of the following core components:
 
 ### 2.2 Component Diagram
 
-![Architecture Diagram](./docs/SolutionDiagram.jpeg.jpeg)
+![Architecture Diagram](./docs/SolutionDiagram.png)
 
 ## 3. Implementation Details
 

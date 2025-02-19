@@ -89,7 +89,7 @@ This service will establish a connection with the Avalanche C-Chain via an RPC n
 
 | Method | Endpoint                                                      | Description                                                            |
 | ------ | ------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| GET    | `/total-transferred?startDate=dateString&endDate=dateString`  | Fetch total transferred amounds of USDC in a time interval             |
+| GET    | `/total-transferred?startDate=dateString&endDate=dateString`  | Fetch total transferred amounts of USDC in a time interval             |
 | GET    | `/top-accounts?limit=number`                                  | Fetch a list of the most USDC transactioning accounts                  |
 
 ## 4. Deployment Considerations

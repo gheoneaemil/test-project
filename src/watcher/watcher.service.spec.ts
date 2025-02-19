@@ -92,9 +92,8 @@ describe('WatcherService', () => {
   it('should save a transfer event to the repository with the maximum amount', async () => {
     const from = '0x123';
     const to = '0x456';
-    const amount = BigNumber.from(
-      '999999999999999999999999999999999999999999999999999999999999999999999999999999',
-    );
+    const extremelyBigStringifiedAmount = '999999999999999999999999999999999999999999999999999999999999999999999999999999';
+    const amount = BigNumber.from(extremelyBigStringifiedAmount);
     const event = { blockNumber: 100 };
     const createdAt = new Date('2023-11-14T22:13:20.000Z');
 
@@ -111,8 +110,7 @@ describe('WatcherService', () => {
     await watcherService.onModuleInit();
 
     expect(mockTransferRepository.save).toHaveBeenCalledWith({
-      amount:
-        '999999999999999999999999999999999999999999999999999999999999999999999999999999',
+      amount: extremelyBigStringifiedAmount,
       from,
       createdAt,
       to,

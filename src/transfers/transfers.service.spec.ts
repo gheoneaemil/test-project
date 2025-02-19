@@ -80,9 +80,7 @@ describe('TransfersService', () => {
         '2024-01-01',
         '2024-01-31',
       );
-      expect(result).toBe(
-        '999999999999999999999999999999999999999999999999999999999999999999999999999999',
-      );
+      expect(result).toBe(mockTotal.totalTransferred);
       expect(mockTransferRepository.createQueryBuilder).toHaveBeenCalledWith(
         'transfer',
       );
